@@ -82,11 +82,11 @@ code, textarea, pre.code {
 <textarea id="code">for (var i = 0; i < 3; i++) {
   print("hey " + i);
 }</textarea>
-<button id="execute">Execute</button>
 <div id="output" class="log"></div>
 <script src="require.js"></script>
 <script>
 var MAX_EXEC_MS = 250;
+var RE_EXEC_MS = 300;
 
 function output(type, msg) {
   var div = $('<div></div>');
@@ -131,8 +131,8 @@ define("main", function(require) {
   var ScopeMangler = require("slowmo/scope-mangler");
   var LoopInserter = require("slowmo/loop-inserter");
   var falafel = require("falafel");
-  
-  $("#execute").click(function() {
+  var timeout;
+  var execute = function execute() {
     var code = $("#code").val();
     var scopeLog = LogListeners({
       declare: function(scope, name, value, range) {
@@ -183,7 +183,14 @@ define("main", function(require) {
     } catch (e) {
       return output("error", e.toString());
     }
-  }).click();
+  };
+  
+  $("#code").keyup(function() {
+    clearTimeout(timeout);
+    timeout = setTimeout(execute, RE_EXEC_MS);
+  });
+
+  execute();
 });
 
 require(["main"], function() {});
