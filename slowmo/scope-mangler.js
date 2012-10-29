@@ -44,7 +44,10 @@ define(function(require, module, exports) {
       node.declarations.forEach(function(decl) {
         decls.push(makeDeclareCode(decl.id.name, decl.init, decl));
       });
-      return node.update(decls.join(';') + ';');
+      var newCode = decls.join(' || ');
+      if (node.source().slice(-1) == ';')
+        newCode += ';'
+      return node.update(newCode);
     }
 
     if (node.type == "AssignmentExpression") {

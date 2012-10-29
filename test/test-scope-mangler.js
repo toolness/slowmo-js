@@ -65,6 +65,10 @@ defineTests([
     declTest("var i; var j = 2;",
              [["i", undefined, "i"], ["j", 2, "j = 2"]]);
   });
+
+  test("var decls in for loops work", function() {
+    declTest("for (var i = 0; false; i++) {}", [["i", 0, "i = 0"]]);
+  });
   
   test("property names in object literals stay intact", function() {
     isUnchanged("({x: 3});");
