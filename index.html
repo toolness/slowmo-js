@@ -96,7 +96,7 @@ function outputHighlight(code, range, caption) {
   var begin = document.createTextNode(code.slice(0, range[0]));
   var end = document.createTextNode(code.slice(range[1]));
 
-  $('.highlight', div).text(code.slice(range[0], range[1]));
+  $('.highlight', div).text(code.slice(range[0], range[1]) || ' ');
   div.prepend(begin).append(end);
   
   $('<div class="mini"></div>').append(div).append(caption)
@@ -166,6 +166,9 @@ define("main", function(require) {
         loopInserter(node);
       }).toString();
     } catch (e) {
+      if (e.index) {
+        outputHighlight(code, [e.index, e.index+1]);
+      }
       return output("error", e.toString());
     }
     var scope = new Scope(null, "GLOBAL", [0, code.length], scopeLog);
