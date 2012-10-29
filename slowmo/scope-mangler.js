@@ -27,15 +27,13 @@ define(function(require, module, exports) {
           node.parent.key.type == "Identifier")
         name = node.parent.key.name;
     }
-    var r = "(function(prevScope) { return function " + 
+    return "(function(prevScope) { return function " + 
            name + "() { " + 
            "var scope = new Scope(prevScope, " + 
            JSON.stringify(name) + ", " + range(node) + ");" +
            preamble.join(';') + '; try { ' +
            node.body.source().slice(1, -1) + "; } " +
            "finally { scope.leave(); } }})(scope)";
-    console.log(r);
-    return r;
   }
 
   return function ScopeMangler(node) {
