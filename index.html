@@ -140,7 +140,6 @@ define("main", function(require) {
         outputHighlight(code, range, describeVar(name, value));
       },
       get: function(scope, name, value, range) {
-        console.log("GET", name, range);
         outputHighlight(code, range, describeVar(name, value));
       },
       update: function(scope, name, operator, prefix, oldValue, range) {
