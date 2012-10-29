@@ -10,8 +10,27 @@
   color: red;
 }
 
+.log .debug {
+  color: gray;
+}
+
 .log .print {
   color: black;
+}
+
+.log .code {
+  border-left: 2px solid gray;
+  padding-left: 2px;
+}
+
+.highlight {
+  background: lightgreen;
+}
+
+#code {
+  display: block;
+  width: 100%;
+  height: 300px;
 }
 </style>
 <title>SlowmoJS</title>
@@ -29,23 +48,54 @@ function output(type, msg) {
   div.addClass(type).text(msg).appendTo("#output");
 }
 
+function outputHighlight(code, range) {
+  var div = $('<pre class="code"><span class="highlight"></span></pre>');
+  var begin = document.createTextNode(code.slice(0, range[0]));
+  var end = document.createTextNode(code.slice(range[1]));
+
+  $('.highlight', div).text(code.slice(range[0], range[1]));
+  div.prepend(begin).append(end).appendTo("#output");
+}
+
+function LogListeners(listeners) {
+  return function(name) {
+    if (name in listeners) {
+      var args = [this].concat(Array.prototype.slice.call(arguments, 1));
+      listeners[name].apply(listeners, args);
+    }
+  };
+}
+
 define("main", function(require) {
   var $ = require("jquery");
   var Scope = require("slowmo/scope");
   var ScopeMangler = require("slowmo/scope-mangler");
   var LoopInserter = require("slowmo/loop-inserter");
   var falafel = require("falafel");
-  var startTime = 0;
-  var loopCheck = function loopCheck(range) {
-    if (Date.now() - startTime > MAX_EXEC_MS)
-      throw new Error("max run time exceeded (" + MAX_EXEC_MS + " ms)");
-  };
-  var loopInserter = LoopInserter(function(node) {
-    return "loopCheck(" + JSON.stringify(node.range) + ");";
-  });
   
   $("#execute").click(function() {
     var code = $("#code").val();
+    var scopeLog = LogListeners({
+      declare: function(scope, name, value, range) {
+        if (!range) return;
+        outputHighlight(code, range);
+        output("debug", "declaring " + name + " in scope " + scope.name);
+      },
+      get: function(scope, name, value, range) {
+        outputHighlight(code, range);
+        output("debug", "getting variable " + name + " in scope " +
+               scope.name);
+      }
+    });
+    var startTime = 0;
+    var loopCheck = function loopCheck(range) {
+      if (Date.now() - startTime > MAX_EXEC_MS)
+        throw new Error("max run time exceeded (" + MAX_EXEC_MS + " ms)");
+    };
+    var loopInserter = LoopInserter(function(node) {
+      return "loopCheck(" + JSON.stringify(node.range) + ");";
+    });
+
     $("#output").empty();
     if (!code.trim())
       return output("error", "no code to run!");
@@ -57,8 +107,7 @@ define("main", function(require) {
     } catch (e) {
       return output("error", e.toString());
     }
-    var scope = new Scope(null, "GLOBAL", [0, code.length],
-                          Scope.logToConsole);
+    var scope = new Scope(null, "GLOBAL", [0, code.length], scopeLog);
     scope.declare("print", function(msg) {
       output("print", msg);
     });
