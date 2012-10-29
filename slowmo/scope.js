@@ -25,7 +25,7 @@ define(function() {
         var oldValue = this.vars[name];
         switch (operator) {
           case "=":
-          this.vars[name] = value;
+          this.vars[name] = value; break;
 
           default:
           throw new Error("unimplemented operator: " + operator);

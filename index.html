@@ -85,6 +85,16 @@ define("main", function(require) {
         outputHighlight(code, range);
         output("debug", "getting variable " + name + " in scope " +
                scope.name);
+      },
+      update: function(scope, name, operator, prefix, oldValue, range) {
+        outputHighlight(code, range);
+        output("debug", "updating variable " + name + " in scope " +
+               scope.name);
+      },
+      assign: function(scope, name, operator, value, oldValue, range) {
+        outputHighlight(code, range);
+        output("debug", "assigning variable " + name + " in scope " +
+               scope.name);
       }
     });
     var startTime = 0;
