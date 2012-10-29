@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+.log {
+  font-family: monospace;
+  white-space: pre-wrap;
+}
+
+.log .error {
+  color: red;
+}
+
+.log .print {
+  color: black;
+}
+</style>
+<title>SlomoJS</title>
+<h1>SlomoJS</h1>
+<p>Javascript in Slow Motion.</p>
+<textarea id="code">print("hi there!");</textarea>
+<button id="execute">Execute</button>
+<div id="output" class="log"></div>
+<script src="require.js"></script>
+<script>
+var MAX_EXEC_MS = 250;
+
+function output(type, msg) {
+  var div = $('<div></div>');
+  div.addClass(type).text(msg).appendTo("#output");
+}
+
+define("main", function(require) {
+  var $ = require("jquery");
+  var Scope = require("slowmo/scope");
+  var ScopeMangler = require("slowmo/scope-mangler");
+  var LoopInserter = require("slowmo/loop-inserter");
+  var falafel = require("falafel");
+  var startTime = 0;
+  var loopCheck = function loopCheck() {
+    if (Date.now() - startTime > MAX_EXEC_MS)
+      throw new Error("max run time exceeded (" + MAX_EXEC_MS + " ms)");
+  };
+  var loopInserter = LoopInserter("loopCheck");
+  
+  $("#execute").click(function() {
+    var code = $("#code").val();
+    $("#output").empty();
+    if (!code.trim())
+      return output("error", "no code to run!");
+    try {
+      var mangled = falafel(code, function(node) {
+        ScopeMangler(node);
+        loopInserter(node);
+      }).toString();
+    } catch (e) {
+      return output("error", e.toString());
+    }
+    var scope = new Scope(null, "GLOBAL");
+    scope.declare("print", function(msg) {
+      output("print", msg);
+    });
+    try {
+      eval(mangled);
+    } catch (e) {
+      return output("error", e.toString());
+    }
+  });
+});
+
+require(["main"], function() {});
+</script>

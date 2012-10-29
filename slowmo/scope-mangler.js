@@ -1,0 +1,96 @@
+define(function(require, module, exports) {
+  function range(node) {
+    return JSON.stringify(node.range);
+  }
+  
+  function makeDeclareCode(name, value, node) {
+    if (value === null)
+      value = "undefined";
+    if (value && typeof(value) == "object")
+      value = value.source();
+    return 'scope.declare(' + JSON.stringify(name) + ', ' + value + ', ' +
+           range(node) + ')';
+  }
+
+  function convertFunctionExpression(node) {
+    var preamble = [];
+    for (var i = 0; i < node.params.length; i++) {
+      preamble.push(makeDeclareCode(node.params[i].name,
+                                    "arguments[" + i + "]",
+                                    node.params[i]));
+    }
+    var name = node.id && node.id.name || '';
+    if (!name) {
+      if (node.parent.type == "VariableDeclarator")
+        name = node.parent.id.name;
+      if (node.parent.type == "Property" &&
+          node.parent.key.type == "Identifier")
+        name = node.parent.key.name;
+    }
+    return "(function(prevScope) { return function " + 
+           name + "() { " + 
+           "var scope = new Scope(prevScope, " + 
+           JSON.stringify(name) + ", " + range(node) + ");" +
+           preamble.join(';') + ';' +
+           node.body.source().slice(1) + "; })(scope)";
+  }
+
+  return function ScopeMangler(node) {
+    if (node.type == 'VariableDeclaration') {
+      var decls = [];
+      node.declarations.forEach(function(decl) {
+        decls.push(makeDeclareCode(decl.id.name, decl.init, decl));
+      });
+      return node.update(decls.join(';') + ';');
+    }
+
+    if (node.type == "AssignmentExpression") {
+      if (node.left.type == "Identifier") {
+        return node.update('scope.assign(' + JSON.stringify(node.left.name) +
+                           ', ' + JSON.stringify(node.operator) + ', ' +
+                           node.right.source() + ', ' + range(node) + ')');
+      }
+    }
+  
+    if (node.type == "UpdateExpression") {
+      if (node.argument.type == "Identifier") {
+        return node.update("scope.update(" + 
+                           JSON.stringify(node.argument.name) +
+                           ", " + JSON.stringify(node.operator) + ", " +
+                           node.prefix + ", " + range(node) + ")");
+      }
+    }
+  
+    if (node.type == "FunctionDeclaration") {
+      node.update("scope.declare(" + JSON.stringify(node.id.name) + ", " +
+                  convertFunctionExpression(node) + ", " +
+                  range(node) + ")");
+      return;
+    }
+  
+    if (node.type == "FunctionExpression") {
+      return node.update(convertFunctionExpression(node));
+    }
+  
+    if (node.type == "Identifier") {
+      if (node.parent.type == "FunctionDeclaration" ||
+          node.parent.type == "FunctionExpression")
+        return;
+      if (node.parent.type == "Property" &&
+          node.parent.key === node) {
+        return;
+      }
+      if (node.parent.type == "VariableDeclarator" &&
+          node.parent.id === node) {
+        return;
+      }
+      if (node.parent.type == "MemberExpression" &&
+          node.parent.computed == false &&
+          node.parent.object !== node) {
+        return;
+      }
+      node.update('scope.get(' + JSON.stringify(node.name) + ', ' +
+                  range(node) + ')');
+    }
+  };
+});

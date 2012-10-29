@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>SlomoJS Test Suite</title>
+    <link rel="stylesheet" href="qunit.css">
+  </head>
+
+  <body>
+    <h1  id="qunit-header">SlomoJS Test Suite</h1>
+    <h2  id="qunit-banner"></h2>
+    <div id="qunit-testrunner-toolbar"></div>
+    <h2  id="qunit-userAgent"></h2>
+    <ol  id="qunit-tests"></ol>
+    <div id="qunit-fixture"></div>
+
+    <script src="qunit.js"></script>
+    <script src="define-tests.js"></script>
+    <script>
+    var require = {
+      baseUrl: ".."
+    };
+    </script>
+    <script src="../require.js"></script>
+    <script>
+    QUnit.config.testTimeout = 5000;
+    defineTests.run(["test/all-tests"]);
+    
+    if (window.inPhantomJS) {
+      QUnit.testStart(function(details) {
+        console.log(details.module + " : " + details.name);
+      });
+      QUnit.testDone(function(details) {
+        console.log("  " + details.passed + " of " + details.total +
+                    " assertions passed.");
+      });
+      QUnit.done(function(details) {
+        console.log("END:" + JSON.stringify(details));
+      });
+    }
+    
+    if (location.search.match(/externalreporter=1/))
+      document.write('<script src="/externalreporter.js"></' + 'script>');
+    </script>
+  </body>
+</html>
