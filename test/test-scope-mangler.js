@@ -21,11 +21,11 @@ defineTests([
     };
     var mangled = falafel(code, ScopeMangler).toString();
     var retval = eval(mangled);
-    deepEqual(retval, undefined, "var decls always return undefined");
     if (typeof(expectedDecls) == "function")
       return expectedDecls(decls);
     deepEqual(decls, expectedDecls,
               "var declarations are as expected for " + code);
+    return retval;
   }
 
   function isUnchanged(code) {
@@ -35,6 +35,11 @@ defineTests([
     ok(true, "evals w/o throwing");
   }
 
+  test("var decls return undefined", function() {
+    var retval = declTest("var i = 1;", [["i", 1, "i = 1"]]);
+    deepEqual(retval, undefined, "var decls always return undefined");
+  });
+  
   test("function decls are converted to var decls", function() {
     declTest("function foo(x) {}", function(decls) {
       equal(decls.length, 1);
@@ -66,6 +71,10 @@ defineTests([
              [["i", undefined, "i"], ["j", 2, "j = 2"]]);
   });
 
+  test("var decls w/o semicolons afterwards work", function() {
+    declTest("var a = 1\n1+2;", [["a", 1, "a = 1"]]);
+  });
+  
   test("var decls in for loops work", function() {
     declTest("for (var i = 0; false; i++) {}", [["i", 0, "i = 0"]]);
   });

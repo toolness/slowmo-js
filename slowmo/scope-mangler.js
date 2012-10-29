@@ -43,7 +43,7 @@ define(function(require, module, exports) {
         decls.push(makeDeclareCode(decl.id.name, decl.init, decl));
       });
       var newCode = decls.join(' || ');
-      if (node.source().slice(-1) == ';')
+      if (node.parent.type != "ForStatement")
         newCode += ';'
       return node.update(newCode);
     }
