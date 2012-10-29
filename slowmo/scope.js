@@ -33,7 +33,7 @@ define(function() {
         this.log("assign", name, operator, value, oldValue, range);
         return this.vars[name];
       }
-      return this.prev.assign(name, operator, value);
+      return this.prev.assign(name, operator, value, range);
     },
     update: function(name, operator, prefix, range) {
       if (name in this.vars) {
@@ -48,7 +48,7 @@ define(function() {
         this.log("update", name, operator, prefix, oldValue, range);
         return prefix ? this.vars[name] : oldValue;
       }
-      return this.prev.update(name, operator, prefix);
+      return this.prev.update(name, operator, prefix, range);
     },
     declare: function(name, value, range) {
       this.vars[name] = value;
@@ -60,7 +60,7 @@ define(function() {
         this.log("get", name, this.vars[name], range);
         return this.vars[name];
       }
-      return this.prev.get(name);
+      return this.prev.get(name, range);
     },
     leave: function() {
       this.log("leave");

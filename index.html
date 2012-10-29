@@ -1,8 +1,34 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <style>
+html {
+  font-family: "Helvetica Neue";
+}
+
+* {
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+}
+
+button {
+  font-family: inherit;
+  background: #f0f0f0;
+  border: 1px solid black;
+  cursor: pointer;
+}
+
+button:hover {
+  color: white;
+  background: black;
+}
+
+code, textarea, pre.code {
+  font-family: Monaco;
+  font-size: 10px;
+  padding: 4px;
+}
+
 .log {
-  font-family: monospace;
   white-space: pre-wrap;
 }
 
@@ -16,11 +42,28 @@
 
 .log .print {
   color: black;
+  background: #f0f0f0;
+}
+
+.log .print:before {
+  content: 'print ';
+  color: gray;
 }
 
 .log .code {
-  border-left: 2px solid gray;
-  padding-left: 2px;
+  color: gray;
+}
+
+.log .mini {
+  display: inline-block;
+  border: 1px dotted gray;
+  margin: 4px 4px 4px 0;
+}
+
+.log .mini .desc {
+  font-size: 12px;
+  background: lightgray;
+  color: white;
 }
 
 .highlight {
@@ -48,13 +91,16 @@ function output(type, msg) {
   div.addClass(type).text(msg).appendTo("#output");
 }
 
-function outputHighlight(code, range) {
+function outputHighlight(code, range, caption) {
   var div = $('<pre class="code"><span class="highlight"></span></pre>');
   var begin = document.createTextNode(code.slice(0, range[0]));
   var end = document.createTextNode(code.slice(range[1]));
 
   $('.highlight', div).text(code.slice(range[0], range[1]));
-  div.prepend(begin).append(end).appendTo("#output");
+  div.prepend(begin).append(end);
+  
+  $('<div class="mini"></div>').append(div).append(caption)
+    .appendTo("#output");
 }
 
 function LogListeners(listeners) {
@@ -64,6 +110,17 @@ function LogListeners(listeners) {
       listeners[name].apply(listeners, args);
     }
   };
+}
+
+function describeVar(name, value) {
+  var span = $('<div class="desc"><code class="name"></code> is ' +
+               '<span class="value"></span></div>');
+  $('.name', span).text(name);
+  if (typeof(value) == "function")
+    $('.value', span).text("a function");
+  else
+    $('<code></code>').text(value).appendTo($('.value', span));
+  return span;
 }
 
 define("main", function(require) {
@@ -78,23 +135,17 @@ define("main", function(require) {
     var scopeLog = LogListeners({
       declare: function(scope, name, value, range) {
         if (!range) return;
-        outputHighlight(code, range);
-        output("debug", "declaring " + name + " in scope " + scope.name);
+        outputHighlight(code, range, describeVar(name, value));
       },
       get: function(scope, name, value, range) {
-        outputHighlight(code, range);
-        output("debug", "getting variable " + name + " in scope " +
-               scope.name);
+        console.log("GET", name, range);
+        outputHighlight(code, range, describeVar(name, value));
       },
       update: function(scope, name, operator, prefix, oldValue, range) {
-        outputHighlight(code, range);
-        output("debug", "updating variable " + name + " in scope " +
-               scope.name);
+        outputHighlight(code, range, describeVar(name, value));
       },
       assign: function(scope, name, operator, value, oldValue, range) {
-        outputHighlight(code, range);
-        output("debug", "assigning variable " + name + " in scope " +
-               scope.name);
+        outputHighlight(code, range, describeVar(name, value));
       }
     });
     var startTime = 0;
@@ -127,7 +178,7 @@ define("main", function(require) {
     } catch (e) {
       return output("error", e.toString());
     }
-  });
+  }).click();
 });
 
 require(["main"], function() {});
