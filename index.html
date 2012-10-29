@@ -120,8 +120,14 @@ function describeVar(name, value) {
   $('.name', span).text(name);
   if (typeof(value) == "function")
     $('.value', span).text("a function");
-  else
+  else {
+    if (value === undefined) {
+      value = "undefined";
+    } else {
+      value = JSON.stringify(value);
+    }
     $('<code></code>').text(value).appendTo($('.value', span));
+  }
   return span;
 }
 
@@ -157,6 +163,10 @@ define("main", function(require) {
     var loopInserter = LoopInserter(function(node) {
       return "loopCheck(" + JSON.stringify(node.range) + ");";
     });
+    var logResult = function(result, name, range) {
+      outputHighlight(code, range, describeVar(name, result));
+      return result;
+    };
 
     $("#output").empty();
     if (!code.trim())
@@ -165,6 +175,16 @@ define("main", function(require) {
       var mangled = falafel(code, function(node) {
         ScopeMangler(node);
         loopInserter(node);
+        if ((node.type == "CallExpression" ||
+             node.type == "BinaryExpression" ||
+             node.type == "UnaryExpression") &&
+            // Ignore if source code is throwing away the result.
+            node.parent.type != 'ExpressionStatement') {
+          var codeSlice = code.slice(node.range[0], node.range[1]);
+          node.update("logResult(" + node.source() + ", " +
+                      JSON.stringify(codeSlice) + ", " +
+                      JSON.stringify(node.range) + ")");
+        }
       }).toString();
     } catch (e) {
       if (e.index) {
