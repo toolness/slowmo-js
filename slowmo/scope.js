@@ -1,6 +1,8 @@
 define(function() {
   function noVariableError(name) {
-    throw new Error("no variable called " + name);
+    var err = new Error("no variable called " + name);
+    err.range = arguments[arguments.length - 1];
+    throw err;
   }
 
   var nullScope = {

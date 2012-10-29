@@ -109,6 +109,9 @@ function outputHighlight(code, range, caption) {
   var begin = document.createTextNode(code.slice(0, range[0]));
   var end = document.createTextNode(code.slice(range[1]));
 
+  if (!caption)
+    caption = $('<div class="desc">&nbsp;</div>');
+  
   $('.highlight', div).text(code.slice(range[0], range[1]) || ' ');
   div.prepend(begin).append(end);
   
@@ -216,6 +219,8 @@ define("main", function(require) {
     try {
       eval(mangled);
     } catch (e) {
+      if (e.range && Array.isArray(e.range))
+        outputHighlight(code, e.range);
       return output("error", e.toString());
     }
   };
