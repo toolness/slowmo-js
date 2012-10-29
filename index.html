@@ -142,7 +142,7 @@ define("main", function(require) {
         outputHighlight(code, range, describeVar(name, value));
       },
       update: function(scope, name, operator, prefix, oldValue, range) {
-        outputHighlight(code, range, describeVar(name, value));
+        outputHighlight(code, range, describeVar(name, scope.vars[name]));
       },
       assign: function(scope, name, operator, value, oldValue, range) {
         outputHighlight(code, range, describeVar(name, value));
