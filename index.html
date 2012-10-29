@@ -87,6 +87,17 @@ code, textarea, pre.code {
 <script>
 var MAX_EXEC_MS = 250;
 var RE_EXEC_MS = 300;
+var EXPOSED_GLOBALS = [
+  "console",
+  "escape",
+  "unescape",
+  "encodeURIComponent",
+  "decodeURIComponent",
+  "encodeURI",
+  "decodeURI",
+  "JSON",
+  "Math"
+];
 
 function output(type, msg) {
   var div = $('<div></div>');
@@ -195,6 +206,9 @@ define("main", function(require) {
     var scope = new Scope(null, "GLOBAL", [0, code.length], scopeLog);
     scope.declare("print", function(msg) {
       output("print", msg);
+    });
+    EXPOSED_GLOBALS.forEach(function(name) {
+      scope.declare(name, window[name]);
     });
     startTime = Date.now();
     try {
