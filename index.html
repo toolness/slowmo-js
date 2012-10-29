@@ -36,11 +36,13 @@ define("main", function(require) {
   var LoopInserter = require("slowmo/loop-inserter");
   var falafel = require("falafel");
   var startTime = 0;
-  var loopCheck = function loopCheck() {
+  var loopCheck = function loopCheck(range) {
     if (Date.now() - startTime > MAX_EXEC_MS)
       throw new Error("max run time exceeded (" + MAX_EXEC_MS + " ms)");
   };
-  var loopInserter = LoopInserter("loopCheck");
+  var loopInserter = LoopInserter(function(node) {
+    return "loopCheck(" + JSON.stringify(node.range) + ");";
+  });
   
   $("#execute").click(function() {
     var code = $("#code").val();
@@ -60,6 +62,7 @@ define("main", function(require) {
     scope.declare("print", function(msg) {
       output("print", msg);
     });
+    startTime = Date.now();
     try {
       eval(mangled);
     } catch (e) {
