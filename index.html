@@ -168,8 +168,10 @@ define("main", function(require) {
     });
     var startTime = 0;
     var loopCheck = function loopCheck(range) {
-      if (Date.now() - startTime > MAX_EXEC_MS)
+      if (Date.now() - startTime > MAX_EXEC_MS) {
+        outputHighlight(code, range);
         throw new Error("max run time exceeded (" + MAX_EXEC_MS + " ms)");
+      }
     };
     var loopInserter = LoopInserter(function(node) {
       return "loopCheck(" + JSON.stringify(node.range) + ");";
