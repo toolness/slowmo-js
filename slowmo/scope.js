@@ -6,15 +6,14 @@ define(function() {
   var nullScope = {
     assign: noVariableError,
     update: noVariableError,
-    get: noVariableError
+    get: noVariableError,
+    log: function() {}
   };
-
-  function nullCallback() {}
   
   function Scope(prev, name, range, log) {
     this.prev = prev || nullScope;
     this.name = name;
-    this.log = log || nullCallback;
+    this.log = log || this.prev.log;
     this.vars = {};
   }
 
@@ -55,6 +54,9 @@ define(function() {
         return this.vars[name];
       }
       return this.prev.get(name);
+    },
+    leave: function() {
+      this.log("leave");
     }
   };
 

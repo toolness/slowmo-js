@@ -55,7 +55,8 @@ define("main", function(require) {
     } catch (e) {
       return output("error", e.toString());
     }
-    var scope = new Scope(null, "GLOBAL");
+    var scope = new Scope(null, "GLOBAL", [0, code.length],
+                          Scope.logToConsole);
     scope.declare("print", function(msg) {
       output("print", msg);
     });

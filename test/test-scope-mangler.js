@@ -10,7 +10,8 @@ defineTests([
       declare: function(name, value, range) {
         var slice = code.slice.apply(code, range);
         decls.push([name, value, slice]);
-      }
+      },
+      leave: function() {}
     };
     var Scope = function(prev, name, range) { 
       equal(typeof(name), "string", "scope name is string: " + name);
@@ -116,13 +117,19 @@ defineTests([
   test("scopes are chained", function() {
     var code = "(function foo() { return (function bar() {})() })()";
     var scopes = [];
+    var scopeLeaves = [];
     var Scope = function Scope(prev, name, range) {
       scopes.push({
         previous: prev && prev.name,
         name: name,
         code: code.slice.apply(code, range)
       });
-      return {name: name};
+      return {
+        name: name,
+        leave: function() {
+          scopeLeaves.push(name);
+        }
+      };
     };
     var scope = Scope(null, "GLOBAL", [0, code.length]);
     var mangled = falafel(code, ScopeMangler).toString();
@@ -144,5 +151,7 @@ defineTests([
         "code": "function bar() {}"
       }
     ]);
+    deepEqual(scopeLeaves, ["bar", "foo"],
+              "scope.leave() is called in expected order");
   });
 });
