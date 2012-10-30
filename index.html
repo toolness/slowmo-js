@@ -179,13 +179,20 @@ function outputHighlight(code, range, caption, secondaryRange,
   if (!caption)
     caption = $('<div class="desc">&nbsp;</div>');
   
-  if (secondaryRange && secondaryRange[1] < range[0]) {
-    codeSpan[0].replaceChild(makeHighlight(codeSpan[0].firstChild.nodeValue,
-                                           secondaryRange, "highlight-2",
-                                           secondaryTitle)[0],
-                             codeSpan[0].firstChild);
-  } else {
-    // TODO handle case where secondary range is after first range
+  if (secondaryRange) {
+    var newChild, oldChild;
+    if (secondaryRange[1] < range[0]) {
+      oldChild = codeSpan[0].firstChild;
+      newChild = makeHighlight(oldChild.nodeValue, secondaryRange, 
+                               "highlight-2", secondaryTitle)[0];
+    } else {
+      oldChild = codeSpan[0].lastChild;
+      newChild = makeHighlight(oldChild.nodeValue,
+                               [secondaryRange[0] - range[1],
+                                secondaryRange[1] - range[1]], 
+                               "highlight-2", secondaryTitle)[0];
+    }
+    codeSpan[0].replaceChild(newChild, oldChild);
   }
   
   $('<div class="mini"></div>').append(div).append(caption)
