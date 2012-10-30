@@ -262,6 +262,7 @@ define("main", function(require) {
   var falafel = require("falafel");
   var timeout;
   var callStack = [];
+  var lastCode;
   var execute = function execute() {
     var code = $("#code").val();
     var scopeLog = LogListeners({
@@ -334,6 +335,9 @@ define("main", function(require) {
       return result;
     };
 
+    if (lastCode == code)
+      return;
+    lastCode = code;
     setShareLink(code);
     $("#output > .current-indent").empty();
     if (!code.trim())
