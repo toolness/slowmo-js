@@ -196,11 +196,9 @@ define("main", function(require) {
       var mangled = falafel(code, function(node) {
         ScopeMangler(node);
         loopInserter(node);
-        if ((node.type == "CallExpression" ||
-             node.type == "BinaryExpression" ||
-             node.type == "UnaryExpression") &&
-            // Ignore if source code is throwing away the result.
-            node.parent.type != 'ExpressionStatement') {
+        if (node.type == "CallExpression" ||
+            node.type == "BinaryExpression" ||
+            node.type == "UnaryExpression") {
           var codeSlice = code.slice(node.range[0], node.range[1]);
           node.update("logResult(" + node.source() + ", " +
                       JSON.stringify(codeSlice) + ", " +
