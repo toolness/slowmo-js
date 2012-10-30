@@ -65,6 +65,8 @@ code, textarea, pre.code, .log ol.scope-chain li .scope {
   border: 1px dotted gray;
   margin: 4px 4px 4px 0;
   max-width: 40em;
+  -moz-transition: opacity 1s;
+  -webkit-transition: opacity 1s;
 }
 
 .log .mini pre {
@@ -128,6 +130,9 @@ code, textarea, pre.code, .log ol.scope-chain li .scope {
   content: '()';
 }
 
+.log.filtering .mini:not(.filtered) {
+  opacity: 0.35;
+}
 </style>
 <title>SlowmoJS</title>
 <a href="https://github.com/toolness/slowmo-js"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"></a>
@@ -207,7 +212,26 @@ function outputHighlight(code, range, caption, secondaryRange,
   }
   
   $('<div class="mini"></div>').append(div).append(caption)
-    .appendTo("#output .current-indent");
+    .appendTo("#output .current-indent")
+    .data("ranges", [range].concat(secondaryRange ? [secondaryRange] : []));
+}
+
+function filterRange(start, end) {
+  if (start === end) {
+    $('.log').removeClass('filtering');
+    $('.log .mini').removeClass('filtered');
+    return;
+  }
+  
+  $('.log').addClass('filtering');
+  
+  $('.log .mini').removeClass('filtered').each(function() {
+    $(this).data("ranges").forEach(function(range) {
+      if (range[0] <= start && range[1] >= end) {
+        $(this).addClass("filtered");
+      }
+    }, this);
+  });
 }
 
 function LogListeners(listeners) {
@@ -248,9 +272,10 @@ function getQueryVariable(variable) {
   }
 }
 
-function setShareLink(code) {
+function setShareLink(code, filterRange) {
   var url = location.protocol + "//" + location.host + location.pathname +
-            "?code=" + encodeURIComponent(code);
+            "?code=" + encodeURIComponent(code) +
+            "&filterrange=" + encodeURIComponent(filterRange.join('-'));
   $("#share-link").attr("href", url);
 }
 
@@ -263,6 +288,18 @@ define("main", function(require) {
   var timeout;
   var callStack = [];
   var lastCode;
+  var lastFilterRange = [];
+  var updateFilter = function updateFilter(force) {
+    var codeArea = $("#code")[0];
+    var range = [codeArea.selectionStart, codeArea.selectionEnd];
+    
+    if ((range[0] !== lastFilterRange[0] ||
+         range[1] !== lastFilterRange[1]) || force === true) {
+      lastFilterRange = range;
+      filterRange(range[0], range[1]);
+      setShareLink(lastCode, lastFilterRange);
+    }
+  };
   var execute = function execute() {
     var code = $("#code").val();
     var scopeLog = LogListeners({
@@ -338,7 +375,7 @@ define("main", function(require) {
     if (lastCode == code)
       return;
     lastCode = code;
-    setShareLink(code);
+    setShareLink(lastCode, [0, 0]);
     $("#output > .current-indent").empty();
     if (!code.trim())
       return output("error", "no code to run!");
@@ -377,18 +414,27 @@ define("main", function(require) {
         outputHighlight(code, e.range);
       return output("error", e.toString());
     }
+    updateFilter(true);
   };
   
   $("#code").keyup(function() {
     clearTimeout(timeout);
     timeout = setTimeout(execute, RE_EXEC_MS);
-  });
+  }).on("select keyup mouseup", updateFilter);
 
   function init() {
     var code = getQueryVariable("code");
     if (code !== undefined)
       $("#code").val(code);
-    execute();
+    var filterrange = getQueryVariable("filterrange");
+    try {
+      filterrange = filterrange.split('-');
+      $("#code")[0].selectionStart = parseInt(filterrange[0]);
+      $("#code")[0].selectionEnd = parseInt(filterrange[1]);
+    } finally {
+      $("#code").focus();
+      execute();
+    }
   }
   
   init();
