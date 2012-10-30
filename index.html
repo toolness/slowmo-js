@@ -325,9 +325,9 @@ define("main", function(require) {
     });
     var logResult = function(result, name, range, type) {
       var typeTitles = {
-        CallExpression: "function call",
-        BinaryExpression: "binary operation",
-        UnaryExpression: "unary operation"
+        CallExpression: "result of function call",
+        BinaryExpression: "result of binary operation",
+        UnaryExpression: "result of unary operation"
       };
       outputHighlight(code, range, describeVar(name, result), null,
                       typeTitles[type]);
