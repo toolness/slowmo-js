@@ -18,6 +18,7 @@ define(function() {
     this.log = log || this.prev.log;
     this.vars = {};
     this.range = range;
+    this.declRanges = {};
     this.log("enter");
   }
 
@@ -54,6 +55,7 @@ define(function() {
     },
     declare: function(name, value, range) {
       this.vars[name] = value;
+      this.declRanges[name] = range;
       this.log("declare", name, value, range);
       return value;
     },

@@ -76,8 +76,16 @@ code, textarea, pre.code, .log ol.scope-chain li .scope {
   color: white;
 }
 
-.highlight {
+.highlight-1, .highlight-2 {
+  cursor: default;
+}
+
+.highlight-1 {
   background: lightgreen;
+}
+
+.highlight-2 {
+  background: rgba(0, 0, 0, 0.1);
 }
 
 #code {
@@ -150,16 +158,35 @@ function output(type, msg) {
   div.addClass(type).text(msg).appendTo("#output .current-indent");
 }
 
-function outputHighlight(code, range, caption) {
-  var div = $('<pre class="code"><span class="highlight"></span></pre>');
+function makeHighlight(code, range, className, title) {
+  var span = $('<span></span>');
+  var highlight = $('<span></span>').addClass(className)
+    .text(code.slice(range[0], range[1]) || ' ');
   var begin = document.createTextNode(code.slice(0, range[0]));
   var end = document.createTextNode(code.slice(range[1]));
+  
+  if (title)
+    highlight.attr("title", title);
+  return span.append(begin).append(highlight).append(end);
+}
 
+function outputHighlight(code, range, caption, secondaryRange,
+                         highlightTitle, secondaryTitle) {
+  var div = $('<pre class="code"></pre>');
+  var codeSpan = makeHighlight(code, range, "highlight-1",
+                               highlightTitle).appendTo(div);
+  
   if (!caption)
     caption = $('<div class="desc">&nbsp;</div>');
   
-  $('.highlight', div).text(code.slice(range[0], range[1]) || ' ');
-  div.prepend(begin).append(end);
+  if (secondaryRange && secondaryRange[1] < range[0]) {
+    codeSpan[0].replaceChild(makeHighlight(codeSpan[0].firstChild.nodeValue,
+                                           secondaryRange, "highlight-2",
+                                           secondaryTitle)[0],
+                             codeSpan[0].firstChild);
+  } else {
+    // TODO handle case where secondary range is after first range
+  }
   
   $('<div class="mini"></div>').append(div).append(caption)
     .appendTo("#output .current-indent");
@@ -246,16 +273,26 @@ define("main", function(require) {
       },
       declare: function(scope, name, value, range) {
         if (!range) return;
-        outputHighlight(code, range, describeVar(name, value));
+        outputHighlight(code, range, describeVar(name, value), null,
+                        "declaration of " + name);
       },
       get: function(scope, name, value, range) {
-        outputHighlight(code, range, describeVar(name, value));
+        outputHighlight(code, range, describeVar(name, value),
+                        scope.declRanges[name],
+                        "retrieval of " + name,
+                        "original declaration of " + name);
       },
       update: function(scope, name, operator, prefix, oldValue, range) {
-        outputHighlight(code, range, describeVar(name, scope.vars[name]));
+        outputHighlight(code, range, describeVar(name, scope.vars[name]),
+                        scope.declRanges[name],
+                        "update of " + name,
+                        "original declaration of " + name);
       },
       assign: function(scope, name, operator, value, oldValue, range) {
-        outputHighlight(code, range, describeVar(name, value));
+        outputHighlight(code, range, describeVar(name, value),
+                        scope.declRanges[name],
+                        "assignment of " + name,
+                        "original declaration of " + name);
       }
     });
     var startTime = 0;
@@ -268,8 +305,14 @@ define("main", function(require) {
     var loopInserter = LoopInserter(function(node) {
       return "loopCheck(" + JSON.stringify(node.range) + ");";
     });
-    var logResult = function(result, name, range) {
-      outputHighlight(code, range, describeVar(name, result));
+    var logResult = function(result, name, range, type) {
+      var typeTitles = {
+        CallExpression: "function call",
+        BinaryExpression: "binary operation",
+        UnaryExpression: "unary operation"
+      };
+      outputHighlight(code, range, describeVar(name, result), null,
+                      typeTitles[type]);
       return result;
     };
 
@@ -287,7 +330,8 @@ define("main", function(require) {
           var codeSlice = code.slice(node.range[0], node.range[1]);
           node.update("logResult(" + node.source() + ", " +
                       JSON.stringify(codeSlice) + ", " +
-                      JSON.stringify(node.range) + ")");
+                      JSON.stringify(node.range) + ", " +
+                      JSON.stringify(node.type) + ")");
         }
       }).toString();
     } catch (e) {
