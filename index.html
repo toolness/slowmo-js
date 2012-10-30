@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
+<link href="tipsy.css" rel="stylesheet">
 <style>
 html {
   font-family: "Helvetica Neue";
@@ -137,6 +138,16 @@ code, textarea, pre.code, .log ol.scope-chain li .scope {
 }</textarea>
 <a href="" id="share-link">Link to this code</a>
 <div id="output" class="log"><div class="current-indent"></div></div>
+<script>
+var require = {
+  shim: {
+    'jquery-tipsy': {
+      deps: ['jquery'],
+      exports: 'jQuery'
+    }
+  }
+};
+</script>
 <script src="require.js"></script>
 <script>
 var MAX_EXEC_MS = 250;
@@ -166,7 +177,7 @@ function makeHighlight(code, range, className, title) {
   var end = document.createTextNode(code.slice(range[1]));
   
   if (title)
-    highlight.attr("title", title);
+    highlight.attr("title", title).tipsy();
   return span.append(begin).append(highlight).append(end);
 }
 
@@ -244,7 +255,7 @@ function setShareLink(code) {
 }
 
 define("main", function(require) {
-  var $ = require("jquery");
+  var $ = require("jquery-tipsy");
   var Scope = require("slowmo/scope");
   var ScopeMangler = require("slowmo/scope-mangler");
   var LoopInserter = require("slowmo/loop-inserter");
