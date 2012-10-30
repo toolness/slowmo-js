@@ -198,8 +198,7 @@ define("main", function(require) {
         loopInserter(node);
         if ((node.type == "CallExpression" ||
              node.type == "BinaryExpression" ||
-             node.type == "UnaryExpression" ||
-             node.type == "MemberExpression") &&
+             node.type == "UnaryExpression") &&
             // Ignore if source code is throwing away the result.
             node.parent.type != 'ExpressionStatement') {
           var codeSlice = code.slice(node.range[0], node.range[1]);
