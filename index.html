@@ -22,7 +22,7 @@ button:hover {
   background: black;
 }
 
-code, textarea, pre.code {
+code, textarea, pre.code, .log ol.scope-chain li .scope {
   font-family: Monaco;
   font-size: 10px;
   padding: 4px;
@@ -43,6 +43,7 @@ code, textarea, pre.code {
 .log .print {
   color: black;
   background: #f0f0f0;
+  padding: 4px;
 }
 
 .log .print:before {
@@ -80,6 +81,40 @@ code, textarea, pre.code {
   width: 100%;
   height: 200px;
 }
+
+.log .indent {
+  margin-left: 6px;
+  padding-left: 4px;
+  border-left: 1px solid lightgray;
+}
+
+.log ol.scope-chain {
+  list-style-type: none;
+  padding: 4px;
+  background: lightgray;
+}
+
+.log ol.scope-chain:before {
+  content: 'enter ';
+  color: gray;
+}
+
+.log ol.scope-chain li {
+  display: inline-block;
+}
+
+.log ol.scope-chain li:before {
+  content: ' → ';
+}
+
+.log ol.scope-chain li:first-child:before {
+  content: '';
+}
+
+.log ol.scope-chain li .scope:after {
+  content: '()';
+}
+
 </style>
 <title>SlowmoJS</title>
 <h1>SlowmoJS</h1>
@@ -87,7 +122,7 @@ code, textarea, pre.code {
 <textarea id="code">for (var i = 0; i < 3; i++) {
   print("hey " + i);
 }</textarea>
-<div id="output" class="log"></div>
+<div id="output" class="log"><div class="current-indent"></div></div>
 <script src="require.js"></script>
 <script>
 var MAX_EXEC_MS = 250;
@@ -106,7 +141,7 @@ var EXPOSED_GLOBALS = [
 
 function output(type, msg) {
   var div = $('<div></div>');
-  div.addClass(type).text(msg).appendTo("#output");
+  div.addClass(type).text(msg).appendTo("#output .current-indent");
 }
 
 function outputHighlight(code, range, caption) {
@@ -121,7 +156,7 @@ function outputHighlight(code, range, caption) {
   div.prepend(begin).append(end);
   
   $('<div class="mini"></div>').append(div).append(caption)
-    .appendTo("#output");
+    .appendTo("#output .current-indent");
 }
 
 function LogListeners(listeners) {
@@ -157,9 +192,34 @@ define("main", function(require) {
   var LoopInserter = require("slowmo/loop-inserter");
   var falafel = require("falafel");
   var timeout;
+  var callStack = [];
   var execute = function execute() {
     var code = $("#code").val();
     var scopeLog = LogListeners({
+      enter: function(scope) {
+        if (scope.name == "GLOBAL")
+          return;
+        var newIndent = $('<div class="indent current-indent"></div>');
+        var currIndent = $("#output .current-indent");
+        var scopes = $('<ol class="scope-chain"></ol>').appendTo(newIndent);
+        var textCallStack = [];
+        callStack.push(scope);
+        callStack.forEach(function(scope) {
+          $('<li></li>')
+            .append($('<span class="scope"></span>').text(scope.name))
+            .appendTo(scopes);
+          textCallStack.push(scope.name + '()');
+        });
+        newIndent.attr("title", "Inside " + textCallStack.join(' > '));
+        currIndent.removeClass("current-indent").append(newIndent);
+      },
+      leave: function(scope) {
+        callStack.pop();
+        if (scope.name == "GLOBAL")
+          return;
+        $("#output .current-indent").removeClass("current-indent")
+          .parent().addClass("current-indent");
+      },
       declare: function(scope, name, value, range) {
         if (!range) return;
         outputHighlight(code, range, describeVar(name, value));
@@ -189,7 +249,7 @@ define("main", function(require) {
       return result;
     };
 
-    $("#output").empty();
+    $("#output > .current-indent").empty();
     if (!code.trim())
       return output("error", "no code to run!");
     try {
