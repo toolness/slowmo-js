@@ -201,14 +201,17 @@ function outputHighlight(code, range, caption, secondaryRange,
       oldChild = codeSpan[0].firstChild;
       newChild = makeHighlight(oldChild.nodeValue, secondaryRange, 
                                "highlight-2", secondaryTitle)[0];
-    } else {
+    } else if (secondaryRange[0] > range[1]) {
       oldChild = codeSpan[0].lastChild;
       newChild = makeHighlight(oldChild.nodeValue,
                                [secondaryRange[0] - range[1],
                                 secondaryRange[1] - range[1]], 
                                "highlight-2", secondaryTitle)[0];
+    } else {
+      // TODO: Implement this.
     }
-    codeSpan[0].replaceChild(newChild, oldChild);
+    if (newChild && oldChild)
+      codeSpan[0].replaceChild(newChild, oldChild);
   }
   
   $('<div class="mini"></div>').append(div).append(caption)
