@@ -6,7 +6,7 @@ With libraries like [esprima][] and [falafel][], however, we can monitor the exe
 
 ## Design Notes
 
-I originally wanted to use [Popcorn][] to generate a movie of the user's code being executed, but given [Edward Tufte][]'s belief that it's usually better to have information adjacent in space rather than stacked in time, I decided to make the visualization purely spatial, rather than temporal.
+I originally wanted to use [Popcorn][] to generate a movie of the user's code being executed, but given [Edward Tufte][]'s belief that it's usually better to have information adjacent in space rather than stacked in time--which is yet another problem with traditional debuggers--I decided to make the visualization purely spatial, rather than temporal.
 
 ## Implementation Notes
 
