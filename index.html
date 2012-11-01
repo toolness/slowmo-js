@@ -429,7 +429,7 @@ define("main", function(require) {
     var code = getQueryVariable("code");
     if (code !== undefined)
       $("#code").val(code);
-    var filterrange = getQueryVariable("filterrange");
+    var filterrange = getQueryVariable("filterrange") || "0-0";
     try {
       filterrange = filterrange.split('-');
       $("#code")[0].selectionStart = parseInt(filterrange[0]);
