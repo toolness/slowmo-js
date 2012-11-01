@@ -35,6 +35,24 @@ defineTests([
     ok(true, "evals w/o throwing");
   }
 
+  test("constructors still work", function() {
+    function Thing(x) { this.x = x; }
+    Thing.prototype = {
+      bleh: 20
+    };
+    var code = "new Foo(5)";
+    var scope = {
+      get: function(name, range) {
+        return Thing;
+      }
+    };
+    var mangled = falafel(code, ScopeMangler).toString();
+    var retval = eval(mangled);
+    ok(retval instanceof Thing);
+    equal(retval.x, 5);
+    equal(retval.bleh, 20);
+  });
+  
   test("var decls return undefined", function() {
     var retval = declTest("var i = 1;", [["i", 1, "i = 1"]]);
     deepEqual(retval, undefined, "var decls always return undefined");

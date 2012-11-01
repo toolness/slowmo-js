@@ -93,8 +93,8 @@ define(function(require, module, exports) {
           node.parent.object !== node) {
         return;
       }
-      node.update('scope.get(' + JSON.stringify(node.name) + ', ' +
-                  range(node) + ')');
+      node.update('(scope.get(' + JSON.stringify(node.name) + ', ' +
+                  range(node) + '))');
     }
   };
 });
