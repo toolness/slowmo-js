@@ -68,7 +68,7 @@ define(function(require, module, exports) {
     if (node.type == "FunctionDeclaration") {
       node.update("scope.declare(" + JSON.stringify(node.id.name) + ", " +
                   convertFunctionExpression(node) + ", " +
-                  range(node) + ")");
+                  range(node) + ");");
       return;
     }
   

@@ -21,8 +21,10 @@ defineTests([
     };
     var mangled = falafel(code, ScopeMangler).toString();
     var retval = eval(mangled);
-    if (typeof(expectedDecls) == "function")
-      return expectedDecls(decls);
+    if (typeof(expectedDecls) == "function") {
+      expectedDecls(decls);
+      return retval;
+    }
     deepEqual(decls, expectedDecls,
               "var declarations are as expected for " + code);
     return retval;
@@ -59,12 +61,13 @@ defineTests([
   });
   
   test("function decls are converted to var decls", function() {
-    declTest("function foo(x) {}", function(decls) {
+    var retval = declTest("function foo(x) {}\n(1);", function(decls) {
       equal(decls.length, 1);
       equal(decls[0][0], "foo");
       equal(typeof decls[0][1], "function");
       equal(decls[0][2], "function foo(x) {}");
     });
+    equal(retval, 1);
   });
   
   test("function args are converted to decls", function() {
