@@ -11,13 +11,15 @@ define(function() {
       node.update('attr.assign(' + node.left.object.source() + ', ' +
                   propertyAsString(node.left) + ', ' +
                   JSON.stringify(node.operator) + ', ' +
-                  node.right.source() + ')');
+                  node.right.source() + ', ' +
+                  JSON.stringify(node.range) + ')');
     if (node.type == 'UpdateExpression' &&
         node.argument.type == 'MemberExpression')
       node.update('attr.update(' + node.argument.object.source() + ', ' +
                   propertyAsString(node.argument) + ', ' +
                   JSON.stringify(node.operator) + ', ' +
-                  node.prefix + ')');
+                  node.prefix + ', ' +
+                  JSON.stringify(node.range) + ')');
     if (node.type == 'MemberExpression') {
       if (node.parent.type == 'AssignmentExpression' &&
           node.parent.left ===  node)
@@ -26,7 +28,8 @@ define(function() {
           node.parent.argument ===  node)
         return;
       node.update('attr.get(' + node.object.source() + ', ' +
-                  propertyAsString(node) + ')');
+                  propertyAsString(node) + ', ' + 
+                  JSON.stringify(node.range) + ')');
     }
   };
 });

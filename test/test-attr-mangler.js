@@ -2,18 +2,21 @@ defineTests([
   "falafel",
   "slowmo/attr-mangler"
 ], function(falafel, AttrMangler) {
-  var log;
+  var code, log, rangeLog;
   var attr = {
-    get: function(obj, prop) {
+    get: function(obj, prop, range) {
       log.push(["get", obj, prop]);
+      rangeLog.push(code.slice.apply(code, range));
       return obj[prop];
     },
-    update: function(obj, prop, operator, prefix) {
+    update: function(obj, prop, operator, prefix, range) {
       log.push(["update", obj, prop, operator, prefix]);
+      rangeLog.push(code.slice.apply(code, range));
       return obj[prop] + 1;
     },
-    assign: function(obj, prop, operator, value) {
+    assign: function(obj, prop, operator, value, range) {
       log.push(["assign", obj, prop, operator, value]);
+      rangeLog.push(code.slice.apply(code, range));
       return value;
     }
   };
@@ -21,56 +24,63 @@ defineTests([
   module("attr-mangler", {
     setup: function() {
       log = [];
+      rangeLog = [];
     }
   });
 
   test("get works w/ computed properties", function() {
     var a = {b: "value"};
     var foo = "b";
-    var code = "a[foo];";
+    code = "a[foo];";
     var mangled = falafel(code, AttrMangler).toString();
     equal(eval(mangled), "value");
     deepEqual(log, [["get", a, foo]]);
+    deepEqual(rangeLog, ['a[foo]']);
   });
   
   test("get works w/ non-computed properties", function() {
     var a = {b: "value"};
-    var code = "a.b;";
+    code = "a.b;";
     var mangled = falafel(code, AttrMangler).toString();
     equal(eval(mangled), "value");
     deepEqual(log, [["get", a, "b"]]);
+    deepEqual(rangeLog, ['a.b']);
   });
 
   test("update works w/ computed properties", function() {
     var a = {b: 5};
     var foo = "b";
-    var code = "++a[foo];";
+    code = "++a[foo];";
     var mangled = falafel(code, AttrMangler).toString();
     equal(eval(mangled), 6);
     deepEqual(log, [["update", a, foo, "++", true]]);
+    deepEqual(rangeLog, ['++a[foo]']);
   });
   
   test("update works w/ non-computed properties", function() {
     var a = {b: 5};
-    var code = "++a.b;";
+    code = "++a.b;";
     var mangled = falafel(code, AttrMangler).toString();
     equal(eval(mangled), 6);
     deepEqual(log, [["update", a, "b", "++", true]]);
+    deepEqual(rangeLog, ['++a.b']);
   });
 
   test("assignment works w/ computed properties", function() {
     var a = {};
-    var code = "a['b'] = 3;";
+    code = "a['b'] = 3;";
     var mangled = falafel(code, AttrMangler).toString();
     equal(eval(mangled), 3);
     deepEqual(log, [["assign", a, "b", "=", 3]]);
+    deepEqual(rangeLog, ["a['b'] = 3"]);
   });
   
   test("assignment works w/ non-computed properties", function() {
     var a = {};
-    var code = "a.b = 3;";
+    code = "a.b = 3;";
     var mangled = falafel(code, AttrMangler).toString();
     equal(eval(mangled), 3);
     deepEqual(log, [["assign", a, "b", "=", 3]]);
+    deepEqual(rangeLog, ["a.b = 3"]);
   });
 });
