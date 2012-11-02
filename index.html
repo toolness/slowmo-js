@@ -285,7 +285,9 @@ function setShareLink(code, filterRange) {
 define("main", function(require) {
   var $ = require("jquery-tipsy");
   var Scope = require("slowmo/scope");
+  var Attr = require("slowmo/attr");
   var ScopeMangler = require("slowmo/scope-mangler");
+  var AttrMangler = require("slowmo/attr-mangler");
   var LoopInserter = require("slowmo/loop-inserter");
   var falafel = require("falafel");
   var timeout;
@@ -305,6 +307,26 @@ define("main", function(require) {
   };
   var execute = function execute() {
     var code = $("#code").val();
+    var attrLog = LogListeners({
+      get: function(attr, obj, prop, range) {
+        outputHighlight(code, range,
+                        describeVar("[" + JSON.stringify(prop) + "]", 
+                                    obj[prop]),
+                        null, "retrieval of property " + prop);
+      },
+      update: function(attr, obj, prop, operator, prefix, oldValue, range) {
+        outputHighlight(code, range,
+                        describeVar("[" + JSON.stringify(prop) + "]", 
+                                    obj[prop]),
+                        null, "update of property " + prop);
+      },
+      assign: function(attr, obj, prop, operator, oldValue, range) {
+        outputHighlight(code, range,
+                        describeVar("[" + JSON.stringify(prop) + "]", 
+                                    obj[prop]),
+                        null, "assignment of property " + prop);
+      }
+    });
     var scopeLog = LogListeners({
       enter: function(scope) {
         if (scope.name == "GLOBAL")
@@ -384,6 +406,7 @@ define("main", function(require) {
       return output("error", "no code to run!");
     try {
       var mangled = falafel(code, function(node) {
+        AttrMangler(node);
         ScopeMangler(node);
         loopInserter(node);
         if (node.type == "CallExpression" ||
@@ -402,6 +425,7 @@ define("main", function(require) {
       }
       return output("error", e.toString());
     }
+    var attr = new Attr(attrLog);
     var scope = new Scope(null, "GLOBAL", [0, code.length], scopeLog);
     scope.declare("print", function(msg) {
       output("print", msg);
