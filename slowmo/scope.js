@@ -26,13 +26,7 @@ define(function() {
     assign: function(name, operator, value, range) {
       if (name in this.vars) {
         var oldValue = this.vars[name];
-        switch (operator) {
-          case "=":
-          this.vars[name] = value; break;
-
-          default:
-          throw new Error("unimplemented operator: " + operator);
-        }
+        eval("this.vars[name] " + operator + " value");
         this.log("assign", name, operator, value, oldValue, range);
         return this.vars[name];
       }
@@ -41,13 +35,7 @@ define(function() {
     update: function(name, operator, prefix, range) {
       if (name in this.vars) {
         var oldValue = this.vars[name];
-        switch (operator) {
-          case "++":
-          this.vars[name]++; break;
-
-          default:
-          throw new Error("unimplemented operator: " + operator);
-        }
+        eval("this.vars[name]" + operator);
         this.log("update", name, operator, prefix, oldValue, range);
         return prefix ? this.vars[name] : oldValue;
       }
