@@ -87,6 +87,10 @@ defineTests([
     declTest("var i, j = 2;", [["i", undefined, "i"], ["j", 2, "j = 2"]]);
   });
 
+  test("var decls w/ commas work with value first", function() {
+    declTest("var i = 3, j = 2;", [["i", 3, "i = 3"], ["j", 2, "j = 2"]]);
+  });
+
   test("multiple var decls work", function() {
     declTest("var i; var j = 2;",
              [["i", undefined, "i"], ["j", 2, "j = 2"]]);
