@@ -42,8 +42,11 @@ define(function(require, module, exports) {
       node.declarations.forEach(function(decl) {
         decls.push(makeDeclareCode(decl.id.name, decl.init, decl));
       });
-      var newCode = decls.join(' || ');
-      if (node.parent.type != "ForStatement")
+
+      var parentIsFor = node.parent.type === "ForStatement";
+      var separator = parentIsFor ? " || " : " ; ";
+      var newCode = decls.join(separator);
+      if (!parentIsFor)
         newCode += ';'
       return node.update(newCode);
     }
