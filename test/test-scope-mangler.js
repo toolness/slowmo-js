@@ -77,6 +77,14 @@ defineTests([
                                      ["x", undefined, "x"]]);
   });
   
+  test("function names are part of their scopes", function() {
+    declTest("(function foo() {})();", function(expectedDecls) {
+      equal(expectedDecls[1][0], "foo", "decl exists");
+      equal(expectedDecls[1][2], "foo",
+            "decl origin in code should be the function name");
+    });
+  });
+
   test("var decls w/ initializers work", function() {
     declTest("var i = 1;", [["i", 1, "i = 1"]]);
   });

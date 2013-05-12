@@ -22,7 +22,7 @@ define(function(require, module, exports) {
     }
     var name = node.id && node.id.name || '';
     if (name) {
-      preamble.push(makeDeclareCode(name, name, node));
+      preamble.push(makeDeclareCode(name, name, node.id));
     } else {
       if (node.parent.type == "VariableDeclarator")
         name = node.parent.id.name;
