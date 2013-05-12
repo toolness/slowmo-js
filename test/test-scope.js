@@ -22,6 +22,11 @@ defineTests([
     }
   }
 
+  test("for loops should work", scopeTest({
+    code: 'var a = ""; for (var v = 0; v < 3; v++) { a += v; } a',
+    result: "012"
+  }));
+
   test("typeof should work with undeclared vars", scopeTest({
     code: "typeof foo",
     result: "undefined"
