@@ -1,5 +1,6 @@
 define(function(require, module, exports) {
   function range(node) {
+    if (!node) return "null";
     return JSON.stringify(node.range);
   }
   
@@ -13,7 +14,7 @@ define(function(require, module, exports) {
   }
 
   function convertFunctionExpression(node) {
-    var preamble = [];
+    var preamble = [makeDeclareCode("arguments", "arguments", null)];
     for (var i = 0; i < node.params.length; i++) {
       preamble.push(makeDeclareCode(node.params[i].name,
                                     "arguments[" + i + "]",

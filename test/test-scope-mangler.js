@@ -8,7 +8,7 @@ defineTests([
     var decls = [];
     var scope = {
       declare: function(name, value, range) {
-        var slice = code.slice.apply(code, range);
+        var slice = range ? code.slice.apply(code, range) : null;
         decls.push([name, value, slice]);
       },
       leave: function() {}
@@ -71,8 +71,10 @@ defineTests([
   });
   
   test("function args are converted to decls", function() {
-    declTest("(function(x) {})(1);", [["x", 1, "x"]]);
-    declTest("(function(x) {})();", [["x", undefined, "x"]]);
+    declTest("(function(x) {})(1);", [["arguments", {"0": 1}, null],
+                                      ["x", 1, "x"]]);
+    declTest("(function(x) {})();", [["arguments", {}, null],
+                                     ["x", undefined, "x"]]);
   });
   
   test("var decls w/ initializers work", function() {

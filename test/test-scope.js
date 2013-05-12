@@ -27,6 +27,13 @@ defineTests([
     result: "undefined"
   }));
 
+  test("arguments.callee should work", scopeTest({
+    code: ["(function(i) {",
+           "  return i < 3 ? i : i * arguments.callee(i - 1)",
+           "})(4)"],
+    result: 24
+  }));
+
   test("recursive function expressions should work", scopeTest({
     code: ["(function fac(i) {",
            "  return i < 3 ? i : i * fac(i - 1)",
