@@ -39,8 +39,32 @@ define(function(require, module, exports) {
            "finally { scope.leave(); } }})(scope)";
   }
 
+  function convertForInStatement(node) {
+    var id;
+    var stmts = [];
+    if (node.left.type == 'VariableDeclaration') {
+      id = node.left.declarations[0].id;
+      stmts.push(makeDeclareCode(id.name, "undefined", id));
+    } else {
+      id = node.left;
+    }
+    stmts.push('for (var val in ' + node.right.source() + ') {' +
+               'scope.assign(' + JSON.stringify(id.name) + ', "=", ' +
+               'val, ' + range(id) + '); ' +
+               node.body.source().slice(1, -1) + '}');
+    node.update('(function() {' + stmts.join('; ') + '})' +
+                '.apply(this, arguments);');
+  }
+
   return function ScopeMangler(node) {
+    if (node.type == 'ForInStatement')
+      return convertForInStatement(node);
+
     if (node.type == 'VariableDeclaration') {
+      if (node.parent.type === 'ForInStatement' &&
+          node.parent.left === node)
+        return;
+
       var decls = [];
       node.declarations.forEach(function(decl) {
         decls.push(makeDeclareCode(decl.id.name, decl.init, decl));
@@ -90,6 +114,10 @@ define(function(require, module, exports) {
                          range(node) + ")");
 
     if (node.type == "Identifier") {
+      if (node.parent.type == "ForInStatement" &&
+          node.parent.left === node)
+        return;
+
       if (node.parent.type == "UnaryExpression" &&
           node.parent.operator == "typeof")
         return;

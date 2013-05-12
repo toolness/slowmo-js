@@ -27,6 +27,25 @@ defineTests([
     result: "012"
   }));
 
+  test("'this' should work in for-each loops", scopeTest({
+    code: [
+      'var obj = {a: ""};',
+      '(function() { for (var v in [1,2,3]) { this.a += v; } }).call(obj);',
+      'obj.a'
+    ],
+    result: "012"
+  }));
+  
+  test("for-each loops w/ var decls in left should work", scopeTest({
+    code: 'var a = ""; for (var v in [1,2,3]) { a+= v; } a',
+    result: "012"
+  }));
+
+  test("for-each loops should work", scopeTest({
+    code: 'var v, a = ""; for (v in [1,2,3]) { a+= v; } a',
+    result: "012"
+  }));
+
   test("typeof should work with undeclared vars", scopeTest({
     code: "typeof foo",
     result: "undefined"
