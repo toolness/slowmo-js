@@ -178,6 +178,7 @@ defineTests([
       });
       return {
         name: name,
+        declare: function() {},
         leave: function() {
           scopeLeaves.push(name);
         }

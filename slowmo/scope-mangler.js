@@ -20,7 +20,9 @@ define(function(require, module, exports) {
                                     node.params[i]));
     }
     var name = node.id && node.id.name || '';
-    if (!name) {
+    if (name) {
+      preamble.push(makeDeclareCode(name, name, node));
+    } else {
       if (node.parent.type == "VariableDeclarator")
         name = node.parent.id.name;
       if (node.parent.type == "Property" &&
