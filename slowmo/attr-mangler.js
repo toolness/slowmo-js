@@ -6,6 +6,16 @@ define(function() {
   }
   
   return function AttrMangler(node) {
+    if (node.type == 'CallExpression' &&
+        node.callee.type == 'MemberExpression') {
+      var callArgs = node.arguments.map(function(arg) {
+        return arg.source();
+      }).join(', ');
+      node.update('attr.call(' + node.callee.object.source() + ', ' +
+                  propertyAsString(node.callee) + ', ' +
+                  '[' + callArgs + '], ' + 
+                  JSON.stringify(node.range) + ')');
+    }
     if (node.type == 'AssignmentExpression' &&
         node.left.type == 'MemberExpression')
       node.update('attr.assign(' + node.left.object.source() + ', ' +
@@ -21,6 +31,9 @@ define(function() {
                   node.prefix + ', ' +
                   JSON.stringify(node.range) + ')');
     if (node.type == 'MemberExpression') {
+      if (node.parent.type == 'CallExpression' &&
+          node.parent.callee === node)
+        return;
       if (node.parent.type == 'AssignmentExpression' &&
           node.parent.left ===  node)
         return;

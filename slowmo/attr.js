@@ -4,6 +4,10 @@ define(function() {
   }
   
   Attr.prototype = {
+    call: function(obj, prop, args, range) {
+      this.log("call", obj, prop, args, range);
+      return obj[prop].apply(obj, args);
+    },
     get: function(obj, prop, range) {
       this.log("get", obj, prop, range);
       return obj[prop];

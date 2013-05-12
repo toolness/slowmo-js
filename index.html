@@ -309,6 +309,12 @@ define("main", function(require) {
   var execute = function execute() {
     var code = $("#code").val();
     var attrLog = LogListeners({
+      call: function(attr, obj, prop, args, range) {
+        outputHighlight(code, range,
+                        describeVar("[" + JSON.stringify(prop) + "]", 
+                                    obj[prop]),
+                        null, "call of property " + prop);
+      },
       get: function(attr, obj, prop, range) {
         outputHighlight(code, range,
                         describeVar("[" + JSON.stringify(prop) + "]", 
