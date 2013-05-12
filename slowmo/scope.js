@@ -9,6 +9,7 @@ define(function() {
     assign: noVariableError,
     update: noVariableError,
     get: noVariableError,
+    getTypeOf: function(name, range) { return "undefined"; },
     log: function() {}
   };
   
@@ -46,6 +47,13 @@ define(function() {
       this.declRanges[name] = range;
       this.log("declare", name, value, range);
       return value;
+    },
+    getTypeOf: function(name, range) {
+      if (name in this.vars) {
+        this.log("getTypeOf", name, this.vars[name], range);
+        return typeof this.vars[name];
+      }
+      return this.prev.getTypeOf(name, range);
     },
     get: function(name, range) {
       if (name in this.vars) {

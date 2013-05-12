@@ -152,6 +152,20 @@ defineTests([
               "assignments are as expected for " + code);
   });
   
+  test("typeof works", function() {
+    var code = "    typeof foo;";
+    var scope = {
+      getTypeOf: function(name, range) {
+        equal(name, "foo");
+        deepEqual(code.slice.apply(code, range), "typeof foo");
+        return "superthingy";
+      }
+    };
+    var mangled = falafel(code, ScopeMangler).toString();
+    var result = eval(mangled);
+    deepEqual(result, "superthingy");
+  });
+
   test("scopes are chained", function() {
     var code = "(function foo() { return (function bar() {})() })()";
     var scopes = [];

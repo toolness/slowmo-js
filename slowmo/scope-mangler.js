@@ -79,7 +79,18 @@ define(function(require, module, exports) {
       return node.update(convertFunctionExpression(node));
     }
   
+    if (node.type == "UnaryExpression" &&
+        node.operator == "typeof" &&
+        node.argument.type == "Identifier")
+      return node.update("scope.getTypeOf(" +
+                         JSON.stringify(node.argument.name) + ", " +
+                         range(node) + ")");
+
     if (node.type == "Identifier") {
+      if (node.parent.type == "UnaryExpression" &&
+          node.parent.operator == "typeof")
+        return;
+
       if (node.parent.type == "FunctionDeclaration" ||
           node.parent.type == "FunctionExpression")
         return;
